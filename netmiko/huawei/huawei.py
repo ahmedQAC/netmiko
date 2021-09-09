@@ -134,7 +134,7 @@ class HuaweiTelnet(HuaweiBase):
     ) -> str:
         """Telnet login for Huawei Devices"""
 
-        login_info = r"[\s\w<%\/().:\\>-]*in unit\d{0,3} login"
+        login_info = r".*"
 
         delay_factor = self.select_delay_factor(delay_factor)
         password_change_prompt = r"(Change now|Please choose 'YES' or 'NO').+"
@@ -153,22 +153,22 @@ class HuaweiTelnet(HuaweiBase):
                 )
                 return_msg += output
                 self.write_channel(self.username + self.TELNET_RETURN)
-                time.sleep(1 * delay_factor)
+
                 # Search for password pattern / send password
                 output = self.read_until_pattern(pattern=pwd_pattern, re_flags=re.I)
                 return_msg += output
                 # assert self.password is not None
                 self.write_channel(self.password + self.TELNET_RETURN)
 
-                # # Waiting for combined output
-                # output = self.read_until_pattern(pattern=combined_pattern)
-                # return_msg += output
+                # Waiting for combined output
+                output = self.read_until_pattern(pattern=combined_pattern)
+                return_msg += output
 
-                # # Search for login info, send " "
-                # if re.search(login_info, output):
-                #     self.write_channel("" + self.TELNET_RETURN)
-                #     output = self.read_until_pattern(pattern=combined_pattern)
-                #     return_msg += output
+                # Search for login info, send " "
+                if re.search(login_info, output):
+                    self.write_channel("" + self.TELNET_RETURN)
+                    output = self.read_until_pattern(pattern=combined_pattern)
+                    return_msg += output
 
                 # Search for password change prompt, send "N"
                 if re.search(password_change_prompt, output):
