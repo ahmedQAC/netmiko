@@ -153,7 +153,7 @@ class HuaweiTelnet(HuaweiBase):
                 )
                 return_msg += output
                 self.write_channel(self.username + self.TELNET_RETURN)
-
+                time.sleep(1 * delay_factor)
                 # Search for password pattern / send password
                 output = self.read_until_pattern(pattern=pwd_pattern, re_flags=re.I)
                 return_msg += output
