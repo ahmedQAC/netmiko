@@ -134,7 +134,7 @@ class HuaweiTelnet(HuaweiBase):
     ) -> str:
         """Telnet login for Huawei Devices"""
 
-        login_info = r"in unit\d{0,3} login"
+        login_info = r"[\s\w<%\/().:\\>-]*in unit\d{0,3} login"
 
         delay_factor = self.select_delay_factor(delay_factor)
         password_change_prompt = r"(Change now|Please choose 'YES' or 'NO').+"
