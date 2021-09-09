@@ -157,7 +157,7 @@ class HuaweiTelnet(HuaweiBase):
                 # Search for password pattern / send password
                 output = self.read_until_pattern(pattern=pwd_pattern, re_flags=re.I)
                 return_msg += output
-                assert self.password is not None
+                # assert self.password is not None
                 self.write_channel(self.password + self.TELNET_RETURN)
 
                 # Waiting for combined output
