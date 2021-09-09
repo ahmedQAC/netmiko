@@ -134,12 +134,12 @@ class HuaweiTelnet(HuaweiBase):
     ) -> str:
         """Telnet login for Huawei Devices"""
 
-        login_info = r".*"
+        # login_info = r".*"
 
         delay_factor = self.select_delay_factor(delay_factor)
         password_change_prompt = r"(Change now|Please choose 'YES' or 'NO').+"
-        combined_pattern = r"({}|{}|{}|{})".format(
-            pri_prompt_terminator, alt_prompt_terminator, password_change_prompt, login_info
+        combined_pattern = r"({}|{}|{})".format(
+            pri_prompt_terminator, alt_prompt_terminator, password_change_prompt
         )
 
         output = ""
@@ -164,11 +164,11 @@ class HuaweiTelnet(HuaweiBase):
                 output = self.read_until_pattern(pattern=combined_pattern)
                 return_msg += output
 
-                # Search for login info, send " "
-                if re.search(login_info, output):
-                    self.write_channel("" + self.TELNET_RETURN)
-                    output = self.read_until_pattern(pattern=combined_pattern)
-                    return_msg += output
+                # # Search for login info, send " "
+                # if re.search(login_info, output):
+                #     self.write_channel("" + self.TELNET_RETURN)
+                #     output = self.read_until_pattern(pattern=combined_pattern)
+                #     return_msg += output
 
                 # Search for password change prompt, send "N"
                 if re.search(password_change_prompt, output):
