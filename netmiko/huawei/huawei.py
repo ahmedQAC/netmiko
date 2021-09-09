@@ -138,7 +138,7 @@ class HuaweiTelnet(HuaweiBase):
 
         delay_factor = self.select_delay_factor(delay_factor)
         password_change_prompt = r"(Change now|Please choose 'YES' or 'NO').+"
-        combined_pattern = r"({}|{}|{})".format(
+        combined_pattern = r"({}|{}|{}|{})".format(
             pri_prompt_terminator, alt_prompt_terminator, password_change_prompt, login_info
         )
 
