@@ -123,21 +123,103 @@ class HuaweiSSH(HuaweiBase):
 class HuaweiTelnet(HuaweiBase):
     """Huawei Telnet driver."""
 
+    # def telnet_login(
+    #     self,
+    #     pri_prompt_terminator: str = r"]\s*$",
+    #     alt_prompt_terminator: str = r">\s*$",
+    #     username_pattern: str = r"(?:user:|username|login|user name)",
+    #     pwd_pattern: str = r"assword",
+    #     delay_factor: float = 1.0,
+    #     max_loops: int = 20,
+    # ) -> str:
+    #     """Telnet login for Huawei Devices"""
+
+    #     # login_info = r".*"
+
+    #     delay_factor = self.select_delay_factor(delay_factor)
+    #     password_change_prompt = r"(Change now|Please choose 'YES' or 'NO').+"
+    #     combined_pattern = r"({}|{}|{})".format(
+    #         pri_prompt_terminator, alt_prompt_terminator, password_change_prompt
+    #     )
+
+    #     output = ""
+    #     return_msg = ""
+    #     i = 1
+    #     while i <= max_loops:
+    #         try:
+    #             # Search for username pattern / send username
+    #             output = self.read_until_pattern(
+    #                 pattern=username_pattern, re_flags=re.I
+    #             )
+    #             return_msg += output
+    #             self.write_channel(self.username + self.TELNET_RETURN)
+
+    #             # Search for password pattern / send password
+    #             output = self.read_until_pattern(pattern=pwd_pattern, re_flags=re.I)
+    #             return_msg += output
+    #             # assert self.password is not None
+    #             self.write_channel(self.password + self.TELNET_RETURN)
+
+    #             # # Waiting for combined output
+    #             # output = self.read_until_pattern(pattern=combined_pattern)
+    #             # return_msg += output
+
+    #             # # Search for login info, send " "
+    #             # if re.search(login_info, output):
+    #             #     self.write_channel("" + self.TELNET_RETURN)
+    #             #     output = self.read_until_pattern(pattern=combined_pattern)
+    #             #     return_msg += output
+
+    #             # Search for password change prompt, send "N"
+    #             if re.search(password_change_prompt, output):
+    #                 self.write_channel("N" + self.TELNET_RETURN)
+    #                 output = self.read_until_pattern(pattern=combined_pattern)
+    #                 return_msg += output
+
+    #             # Check if proper data received
+    #             if re.search(pri_prompt_terminator, output, flags=re.M) or re.search(
+    #                 alt_prompt_terminator, output, flags=re.M
+    #             ):
+    #                 return return_msg
+
+    #             self.write_channel(self.TELNET_RETURN)
+    #             time.sleep(0.5 * delay_factor)
+    #             i += 1
+
+    #         except EOFError:
+    #             assert self.remote_conn is not None
+    #             self.remote_conn.close()
+    #             msg = f"Login failed: {self.host}"
+    #             raise NetmikoAuthenticationException(msg)
+
+    #     # Last try to see if we already logged in
+    #     self.write_channel(self.TELNET_RETURN)
+    #     time.sleep(0.5 * delay_factor)
+    #     output = self.read_channel()
+    #     return_msg += output
+    #     if re.search(pri_prompt_terminator, output, flags=re.M) or re.search(
+    #         alt_prompt_terminator, output, flags=re.M
+    #     ):
+    #         return return_msg
+
+    #     assert self.remote_conn is not None
+    #     self.remote_conn.close()
+    #     msg = f"Login failed: {self.host}"
+    #     raise NetmikoAuthenticationException(msg)
+
     def telnet_login(
         self,
-        pri_prompt_terminator: str = r"]\s*$",
-        alt_prompt_terminator: str = r">\s*$",
-        username_pattern: str = r"(?:user:|username|login|user name)",
-        pwd_pattern: str = r"assword",
-        delay_factor: float = 1.0,
-        max_loops: int = 20,
-    ) -> str:
+        pri_prompt_terminator=r"]\s*$",
+        alt_prompt_terminator=r">\s*$",
+        username_pattern=r"(?:user:|username|login|user name)",
+        pwd_pattern=r"assword",
+        delay_factor=1,
+        max_loops=20,
+    ):
         """Telnet login for Huawei Devices"""
 
-        # login_info = r".*"
-
         delay_factor = self.select_delay_factor(delay_factor)
-        password_change_prompt = r"(Change now|Please choose 'YES' or 'NO').+"
+        password_change_prompt = re.escape("Change now? [Y/N]")
         combined_pattern = r"({}|{}|{})".format(
             pri_prompt_terminator, alt_prompt_terminator, password_change_prompt
         )
@@ -147,28 +229,26 @@ class HuaweiTelnet(HuaweiBase):
         i = 1
         while i <= max_loops:
             try:
-                # Search for username pattern / send username
-                output = self.read_until_pattern(
-                    pattern=username_pattern, re_flags=re.I
-                )
+                output = self.read_channel()
                 return_msg += output
-                self.write_channel(self.username + self.TELNET_RETURN)
+
+                # Search for username pattern / send username
+                if re.search(username_pattern, output, flags=re.I):
+                    self.write_channel(self.username + self.TELNET_RETURN)
+                    time.sleep(1 * delay_factor)
+                    output = self.read_channel()
+                    return_msg += output
 
                 # Search for password pattern / send password
-                output = self.read_until_pattern(pattern=pwd_pattern, re_flags=re.I)
-                return_msg += output
-                # assert self.password is not None
-                self.write_channel(self.password + self.TELNET_RETURN)
-
-                # # Waiting for combined output
-                # output = self.read_until_pattern(pattern=combined_pattern)
-                # return_msg += output
-
-                # # Search for login info, send " "
-                # if re.search(login_info, output):
-                #     self.write_channel("" + self.TELNET_RETURN)
-                #     output = self.read_until_pattern(pattern=combined_pattern)
-                #     return_msg += output
+                if re.search(pwd_pattern, output, flags=re.I):
+                    self.write_channel(self.password + self.TELNET_RETURN)
+                    time.sleep(0.5 * delay_factor)
+                    output = self.read_channel()
+                    return_msg += output
+                    if re.search(
+                        pri_prompt_terminator, output, flags=re.M
+                    ) or re.search(alt_prompt_terminator, output, flags=re.M):
+                        return return_msg
 
                 # Search for password change prompt, send "N"
                 if re.search(password_change_prompt, output):
@@ -187,9 +267,8 @@ class HuaweiTelnet(HuaweiBase):
                 i += 1
 
             except EOFError:
-                assert self.remote_conn is not None
                 self.remote_conn.close()
-                msg = f"Login failed: {self.host}"
+                msg = "Login failed: {}".format(self.host)
                 raise NetmikoAuthenticationException(msg)
 
         # Last try to see if we already logged in
@@ -202,9 +281,8 @@ class HuaweiTelnet(HuaweiBase):
         ):
             return return_msg
 
-        assert self.remote_conn is not None
         self.remote_conn.close()
-        msg = f"Login failed: {self.host}"
+        msg = "Login failed: {}".format(self.host)
         raise NetmikoAuthenticationException(msg)
 
 
