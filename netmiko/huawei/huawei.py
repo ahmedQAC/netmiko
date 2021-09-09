@@ -160,9 +160,9 @@ class HuaweiTelnet(HuaweiBase):
                 # assert self.password is not None
                 self.write_channel(self.password + self.TELNET_RETURN)
 
-                # Waiting for combined output
-                output = self.read_until_pattern(pattern=combined_pattern)
-                return_msg += output
+                # # Waiting for combined output
+                # output = self.read_until_pattern(pattern=combined_pattern)
+                # return_msg += output
 
                 # # Search for login info, send " "
                 # if re.search(login_info, output):
